@@ -1,0 +1,57 @@
+---
+title: "Workflow Survey Results"
+author: "Amelia Bertozzi-Villa"
+date: "January 16, 2018"
+output: pdf_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "C:/Users/abertozzivilla/Dropbox (IDM)/Malaria Team Folder/projects/dropbox_workflow/") })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(data.table)
+library(ggplot2)
+library(RColorBrewer)
+
+rm(list=ls())
+main_dir <- "C:/Users/abertozzivilla/Dropbox (IDM)/Malaria Team Folder/projects/dropbox_workflow/"
+
+data <- fread(paste0(main_dir, "workflow_survey_01172018.csv"))
+
+reshaped <- data.table(type=character(),
+                       location=character())
+
+for (name in names(data)){
+  if (!name %in% c("id", "pain")){
+    for(entry in data[[name]]){
+      vals = strsplit(entry, ", ")
+      for (val in vals[[1]]){
+        # val <- gsub("^ ", "", val) # remove leading whitespace
+        reshaped <- rbind(reshaped, list(name, val))
+      }
+      
+    }
+  }
+}
+
+reshaped[, type:=factor(type, levels=names(data)[2:7], 
+                        labels=c("Raw Data", "Int. Data", "Outputs/ \nEstimates",
+                                 "Collaboration \n Resources", "Paper Drafts", "Code"))]
+
+
+
+ggplot(reshaped, aes(x=type)) +
+  geom_bar(aes(fill=location)) +
+  scale_fill_brewer(direction = -1, palette = "RdYlGn"  )+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust=1),
+        legend.title = element_blank()) +
+  labs(x="",
+       y="Count",
+       title="File/Code Storage, Malaria Research Team Early 2018")
+
+
+
+```
+
