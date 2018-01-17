@@ -1,0 +1,134 @@
+---
+title: "Workflow Survey Results"
+author: "Amelia Bertozzi-Villa"
+date: "January 17, 2018"
+output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "C:/Users/abertozzivilla/Dropbox (IDM)/Malaria Team Folder/projects/dropbox_workflow/") })
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(data.table)
+library(ggplot2)
+library(RColorBrewer)
+
+rm(list=ls())
+main_dir <- "C:/Users/abertozzivilla/Dropbox (IDM)/Malaria Team Folder/projects/dropbox_workflow/"
+
+data <- fread(paste0(main_dir, "workflow_survey_01172018.csv"))
+
+reshaped <- data.table(type=character(),
+                       location=character())
+
+for (name in names(data)){
+  if (!name %in% c("id", "pain")){
+    for(entry in data[[name]]){
+      vals = strsplit(entry, ", ")
+      for (val in vals[[1]]){
+        # val <- gsub("^ ", "", val) # remove leading whitespace
+        reshaped <- rbind(reshaped, list(name, val))
+      }
+      
+    }
+  }
+}
+
+reshaped[, type:=factor(type, levels=names(data)[2:7], 
+                        labels=c("Raw Data", "Int. Data", "Outputs/ \nEstimates",
+                                 "Collaboration \n Resources", "Paper Drafts", "Code"))]
+
+
+```
+
+## State of the World
+As of the interviews conducted in early January 2018, the malaria team file storage looks something like this:
+
+```{r}
+ggplot(reshaped, aes(x=type)) +
+  geom_bar(aes(fill=location)) +
+  scale_fill_brewer(direction = -1, palette = "RdYlGn"  )+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust=1),
+        legend.title = element_blank()) +
+  labs(x="",
+       y="Count",
+       title="File/Code Storage, Malaria Research Team Early 2018")
+```
+
+
+
+
+People's main pain points were as follows:
+
+```{r, echo=TRUE}
+data$pain
+```
+
+
+
+## The Dream: Dropbox Workflows
+
+### **Cardinal Rules**:
+
+1. NO CODE ON DROPBOX.
+2. No naming things after yourself.
+3. Think about generalizeability and reproducibility. 
+
+### Best Practices
+
+#### Data
+
+* Raw data goes in "data" folder, structured by country and data source.
+* Include actual raw data and a "most viable product": data cleaned just enough to be generally useable.
+* Document the data source (and any cleaning steps) as thoroughly as possible. 
+
+#### Workflows
+
+* Standalone projects should get descriptive names in the "projects" folder (nest when reasonable).
+* Ideally, one folder/subfolder in "projects" corresponds to one git repository.
+* Intermediate data (more heavily cleaned/prepped than MVP), model outputs, figures, reports, and paper drafts can all go here.
+* Nothing smaller than a full project (input-output-report) should live in the top-level "projects" folder.
+
+#### Code
+
+* Put things on GitHub. No really, do it.
+  - It's ok for repos to get dirty, so long as you clean them again at the end. 
+  - Even dumb code should have some record of having existed. 
+  - If collaborators don't want to work within git, they can still download raw code from a repo. 
+* Use relative paths!
+* The better you name things, the less documentation you have to write. 
+
+#### Collaborations & Published Work
+
+* Can share all/part of a project folder with collaborators
+* Put published papers, posters, etc. in the "published" folder
+
+
+#### Break the rules: Archiving
+
+* Once a project has been published, add "_ARCHIVE" to the end of the project name
+* In that folder, include:
+  - A copy of the exact code used to make your results (or the appropriate git commit);
+  - Documentation of the relevant COMPS ids and a copy of the .exe used to get simulation outputs;
+  - A copy of the published document.
+* Put your username on things in the "published" folder. 
+
+### Wrinkles
+
+**Big pain point**: the wiki is clunky and difficult for collaboration/reproducibility. 
+**Solution**: Dropbox Paper? Sphinx? EndNote?
+
+
+**Problem**: Some people like to pull big files from COMPS and post-process manually, rather than writing Analyzers, etc. Neither Dropbox nor internal.idm.ctr is a great place to store thos (big) postprocessed files.
+**Solution**: Eventually, have more postprocessing abilities within COMPS. Until then, use Q or local drives as a staging space? 
+
+**Question**: Should there be a parallel standard code workflow? I.e. everyone migrating to idm_malaria git system?
+
+
+
+
+
